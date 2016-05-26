@@ -1,0 +1,10 @@
+[
+{
+    "id": "tools",
+    "children":
+    [
+        {"id": "Insert Footnote"},
+        { "command": "auto_insert_pandoc_footnote" }
+    ]
+}
+]
