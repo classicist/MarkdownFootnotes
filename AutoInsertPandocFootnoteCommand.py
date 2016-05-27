@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import sublime
 import sublime_plugin
 import re
@@ -40,7 +43,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     label_cursor_region = self.view.sel()[0]
     last_note_label = self.previous_note_label(label_cursor_region)
     new_note_lable  = self.increment_fn(last_note_label)
-    self.view.insert(edit, label_cursor_region.a, new_note_lable)
+    self.view.insert(edit, label_cursor_region.end(), new_note_lable)
     label_cursor_region = self.move_cursor(label_cursor_region)
     return(label_cursor_region)
 
@@ -59,6 +62,16 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
       eof_region = eof_region[0]
     return(eof_region)
 
+  def get_entry_text(self, type, text, label_cursor_region):
+    entry_text = ""
+    if type == "new":
+        entry_text = "\n\n%(text)s" % locals()
+    if type == "first_or_middle":
+        entry_text = "%(text)s\n\n" % locals()
+    if type == "last":
+        entry_text = "\n%(text)s" % locals()
+    return(entry_text)
+
   def insert_new_entry(self, edit, label_cursor_region):
     label_before_previous_label = self.previous_note_label(label_cursor_region)
     previous_label = self.increment_fn(label_before_previous_label)
@@ -69,7 +82,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
 
     if entries_exist:
       if is_first_or_middle_position_entry:
-        entry_text = "%(raw_entry)s\n\n" % locals()
+        entry_text = self.get_entry_text("first_or_middle", raw_entry, label_cursor_region)
         entry_spot = entry['region'].a
         entry_cursor_region = entry['region']
         self.view.insert(edit, entry_spot, entry_text)
@@ -80,12 +93,12 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
         new_entry = re.sub("\:.*", ":", previous_entry)
         incremented_entry_number = int(re.findall(r'\d+', new_entry)[0]) + 1
         entry_text = re.sub('\d+', str(incremented_entry_number), new_entry)
-        entry_text = "\n\n%(entry_text)s" % locals()
+        entry_text = self.get_entry_text("last", entry_text, label_cursor_region)
         self.view.insert(edit, entry_spot, entry_text)
         new_region = self.view.find_all(self.ENTRY_PATTERN)[-1]
         entry_cursor_region = new_region
     else: #no entries exist in the file yet, this is the first
-      entry_text = "\n\n[^1]:"
+      entry_text = self.get_entry_text("new", "[^1]:", label_cursor_region)
       entry_spot = self.eof_region().end()
       self.view.insert(edit, entry_spot, entry_text)
       entry_cursor_region = self.eof_region()
@@ -162,5 +175,48 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     self.consecutize_numbering(edit, "entry")
     self.move_cursor_to_region(entry_cursor_region)
 
-# TODO: Edge cases for adding entries
-# TODO: [^1]:(pos:1-11) hominum — cain om. S
+class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteCommand):
+  def get_entry_text(self, type, text, label_cursor_region):
+    text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
+    fn_number = re.findall(r'\d+', text)[0]
+
+    markdown_line_start      = "\n\n" #Problem: is \A for first line in file, not \n\n
+    paragraph_start_pattern  = "__(\d+|\.|praef|pref)+__"
+    paragraph_middle_pattern = ".*?"
+    paragraph_end_pattern    = "\[\^NN\](?!(\:))"
+    paragraph_pattern = markdown_line_start + paragraph_start_pattern + paragraph_middle_pattern + paragraph_end_pattern
+    paragraph_pattern = re.sub("NN", fn_number, paragraph_pattern)
+    paragraph_region = self.view.find(paragraph_pattern, 0)
+    paragraph_text = self.view.substr(paragraph_region)
+    # paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
+    # paragraph_text = re.sub("^[_|*]+.*?\s", "", paragraph_text) #remove section numbers at begining of paragraph
+
+    print("label: " + paragraph_pattern + "text: " + paragraph_text)
+    #Goal: translate the beginning and end of the label_cursor_region into word position numbers in paragraph (1 based counting)
+    #get the text from label_cursor_region.end() back to beginning of markdown paragraph (blank new line)
+    #remove the footnotes and all non-alphanumerics
+    #count the spaces to label_cursor_region.begin()
+    #count the spaces to label_cursor_region.end()
+
+
+    return(text)
+
+  def run(self, edit):
+    AutoInsertPandocFootnoteCommand.run(self, edit)
+
+#Features:
+#add (pos:1-11) to fn
+
+# Bugs:
+# Given text with notes in it
+# and there are 9 notes
+# When a "first" ([^1]) note is added to text
+# Then the last character after the colon is deleted
+
+#Given there are 10 notes
+# When a "first" ([^1]) note is added to text
+# Then a new line char is deleted after the colon
+
+#Given there are many notes in a row
+# When a "first" ([^1]) note is added to text
+# then the right bracket of th [^10] label is deleted and we see a warning message
