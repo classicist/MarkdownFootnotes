@@ -125,6 +125,21 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
       self.view.replace(edit, region, note)
       count = count + 1
 
+# # before: [^9]
+# # BOOM -- plus 0
+# # after : [^10
+# # before: ][^10
+# # after : [^11]
+# # before:  [^11
+# # after : [^12]
+
+# # before: [^9]
+# # BOOM -- plus 1
+# # after : [^10] -- stomp on the next guy on insert?
+# # before: ]^10]
+# # after : [^11]
+
+
   def move_cursor_to_region(self, region):
     # Clear the cursor's position and move it to `region`.
     region.a = region.b
@@ -140,7 +155,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     if len(label_regions) != len(entry_regions):
       no_of_labels  = len(label_regions)
       no_of_entries = len(entry_regions)
-      sublime.error_message("Some footnotes do have a body: There are %(no_of_labels)s footnotes in the text and %(no_of_entries)s footnotes in the footer." % locals())
+      sublime.error_message("Some footnotes don't have a body: There are %(no_of_labels)s footnotes in the text and %(no_of_entries)s footnotes in the footer." % locals())
       return(False)
     else:
       return(True)
@@ -175,38 +190,9 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     self.consecutize_numbering(edit, "entry")
     self.move_cursor_to_region(entry_cursor_region)
 
-class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteCommand):
-  def get_entry_text(self, type, text, label_cursor_region):
-    text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
-    fn_number = re.findall(r'\d+', text)[0]
-
-    markdown_line_start      = "\n\n" #Problem: is \A for first line in file, not \n\n
-    paragraph_start_pattern  = "__(\d+|\.|praef|pref)+__"
-    paragraph_middle_pattern = ".*?"
-    paragraph_end_pattern    = "\[\^NN\](?!(\:))"
-    paragraph_pattern = markdown_line_start + paragraph_start_pattern + paragraph_middle_pattern + paragraph_end_pattern
-    paragraph_pattern = re.sub("NN", fn_number, paragraph_pattern)
-    paragraph_region = self.view.find(paragraph_pattern, 0)
-    paragraph_text = self.view.substr(paragraph_region)
-    # paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
-    # paragraph_text = re.sub("^[_|*]+.*?\s", "", paragraph_text) #remove section numbers at begining of paragraph
-
-    print("label: " + paragraph_pattern + "text: " + paragraph_text)
-    #Goal: translate the beginning and end of the label_cursor_region into word position numbers in paragraph (1 based counting)
-    #get the text from label_cursor_region.end() back to beginning of markdown paragraph (blank new line)
-    #remove the footnotes and all non-alphanumerics
-    #count the spaces to label_cursor_region.begin()
-    #count the spaces to label_cursor_region.end()
-
-
-    return(text)
-
-  def run(self, edit):
-    AutoInsertPandocFootnoteCommand.run(self, edit)
-
-#Features:
-#add (pos:1-11) to fn
-
+#######################################################################################
+#######################################################################################
+#######################################################################################
 # Bugs:
 # Given text with notes in it
 # and there are 9 notes
@@ -217,6 +203,46 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
 # When a "first" ([^1]) note is added to text
 # Then a new line char is deleted after the colon
 
-#Given there are many notes in a row
-# When a "first" ([^1]) note is added to text
-# then the right bracket of th [^10] label is deleted and we see a warning message
+#Given [^10] is preceeded by another note without a space (e.g. [^9][^10)
+# When a number 1-9 note is added to text, the problem would likey show when wee add note 100 too
+#     turning the corner (adding a digit to the note) seems to be the problem, that is,
+#     when the note being added is in the lower range (add note 2, causes 10 trouble, add 25, cause 100 problems, etc)
+# then the right bracket of the [^10] label is deleted and we see a warning message
+# This problem lives in consecutize_numbering("label") for sure
+#######################################################################################
+#######################################################################################
+#######################################################################################
+
+# class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteCommand):
+#   def get_entry_text(self, type, text, label_cursor_region):
+#     text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
+#     fn_number = re.findall(r'\d+', text)[0]
+
+#     markdown_line_start      = "\n\n" #Problem: is \A for first line in file, not \n\n
+#     paragraph_start_pattern  = "__(\d+|\.|praef|pref)+__"
+#     paragraph_middle_pattern = ".*?"
+#     paragraph_end_pattern    = "\[\^NN\](?!(\:))"
+#     paragraph_pattern = markdown_line_start + paragraph_start_pattern + paragraph_middle_pattern + paragraph_end_pattern
+#     paragraph_pattern = re.sub("NN", fn_number, paragraph_pattern)
+#     paragraph_region = self.view.find(paragraph_pattern, 0)
+#     paragraph_text = self.view.substr(paragraph_region)
+#     # paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
+#     # paragraph_text = re.sub("^[_|*]+.*?\s", "", paragraph_text) #remove section numbers at begining of paragraph
+
+#     print("label: " + paragraph_pattern + "text: " + paragraph_text)
+#     #Goal: translate the beginning and end of the label_cursor_region into word position numbers in paragraph (1 based counting)
+#     #get the text from label_cursor_region.end() back to beginning of markdown paragraph (blank new line)
+#     #remove the footnotes and all non-alphanumerics
+#     #count the spaces to label_cursor_region.begin()
+#     #count the spaces to label_cursor_region.end()
+
+
+#     return(text)
+
+  # def run(self, edit):
+  #   AutoInsertPandocFootnoteCommand.run(self, edit)
+
+#Features:
+#add (pos:1-11) to fn
+
+
