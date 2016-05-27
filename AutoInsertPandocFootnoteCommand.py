@@ -1,3 +1,7 @@
+import sublime
+import sublime_plugin
+import re
+
 class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
   LABEL_PATTERN = "\[\^\d+\](?!(\:))"
   ENTRY_PATTERN = "^\[\^\d+\]\:"
