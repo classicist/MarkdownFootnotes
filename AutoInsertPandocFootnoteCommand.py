@@ -112,17 +112,61 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     else:
       note_pattern = self.ENTRY_PATTERN
       note_template = "[^NN]:"
-    regions = self.view.find_all(note_pattern)
     count = 1
 
-    for region in regions:
+    regions = self.view.find_all(note_pattern)
+    for region in regions[0:10]:
       note = note_template.replace("NN", str(count))
+      self.view.erase(edit, region)
+      self.view.insert(edit, region.a, note)
+      count = count + 1
+
+    if len(regions) < 10:
+      return
+
+    regions = self.view.find_all(note_pattern)
+    for region in regions[10:100]:
+      note = note_template.replace("NN", str(count))
+      insert_spot = region.a
+
+      if len(note) > region.size():
+        print("deco")
+        difference =  len(note) - region.size()
+        insert_spot = insert_spot + difference
+
+      self.view.erase(edit, region)
+      self.view.insert(edit, insert_spot, note)
+      count = count + 1
+
+    if len(regions) < 100:
+      return
+    regions = self.view.find_all(note_pattern)
+    for region in regions[100:1000]:
+      note = note_template.replace("NN", str(count))
+      insert_spot = region.a
+      if len(note) > region.size():
+        difference =  len(note) - region.size()
+        insert_spot = insert_spot + difference
+        print("hundo:" + str(difference))
+
+      self.view.erase(edit, region)
+      self.view.insert(edit, insert_spot, note)
+      count = count + 1
+
+
+    if len(regions) < 1000:
+      return
+    regions = self.view.find_all(note_pattern)
+    for region in regions[1000:10000]:
+      note = note_template.replace("NN", str(count))
+      insert_spot = region.a
 
       if len(note) > region.size():
         difference =  len(note) - region.size()
-        region.b = region.b + difference
+        insert_spot = insert_spot + difference
 
-      self.view.replace(edit, region, note)
+      self.view.erase(edit, region)
+      self.view.insert(edit, insert_spot, note)
       count = count + 1
 
 # # before: [^9]
