@@ -62,7 +62,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
       eof_region = eof_region[0]
     return(eof_region)
 
-  def get_entry_text(self, type, text, label_cursor_region):
+  def get_entry_text(self, type, text):
     entry_text = ""
     if type == "new":
         entry_text = "\n\n%(text)s" % locals()
@@ -82,7 +82,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
 
     if entries_exist:
       if is_first_or_middle_position_entry:
-        entry_text = self.get_entry_text("first_or_middle", raw_entry, label_cursor_region)
+        entry_text = self.get_entry_text("first_or_middle", raw_entry)
         entry_spot = entry['region'].a
         entry_cursor_region = entry['region']
         self.view.insert(edit, entry_spot, entry_text)
@@ -93,12 +93,12 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
         new_entry = re.sub("\:.*", ":", previous_entry)
         incremented_entry_number = int(re.findall(r'\d+', new_entry)[0]) + 1
         entry_text = re.sub('\d+', str(incremented_entry_number), new_entry)
-        entry_text = self.get_entry_text("last", entry_text, label_cursor_region)
+        entry_text = self.get_entry_text("last", entry_text)
         self.view.insert(edit, entry_spot, entry_text)
         new_region = self.view.find_all(self.ENTRY_PATTERN)[-1]
         entry_cursor_region = new_region
     else: #no entries exist in the file yet, this is the first
-      entry_text = self.get_entry_text("new", "[^1]:", label_cursor_region)
+      entry_text = self.get_entry_text("new", "[^1]:")
       entry_spot = self.eof_region().end()
       self.view.insert(edit, entry_spot, entry_text)
       entry_cursor_region = self.eof_region()
@@ -107,82 +107,30 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
 
   def consecutize_numbering(self, edit, note_type = "label"):
     if note_type == "label":
-      note_pattern  = self.LABEL_PATTERN
-      note_template = "[^NN]"
+      note_pattern  = "(\[\^\d+\])(?!\:)"
     else:
-      note_pattern = self.ENTRY_PATTERN
-      note_template = "[^NN]:"
+      note_pattern  = "(\[\^\d+\]\:)"
+
+    buffer_contents =  self.view.substr(sublime.Region(0, self.view.size()))
+    labels = re.findall(note_pattern, buffer_contents)
+
     count = 1
+    new_buff = ""
+    old_index = 0
 
-    regions = self.view.find_all(note_pattern)
-    for region in regions[0:10]:
-      note = note_template.replace("NN", str(count))
-      self.view.erase(edit, region)
-      self.view.insert(edit, region.a, note)
+    for old_label in labels:
+      left = buffer_contents.find(old_label)
+      index = left + len(old_label)
+      new_label = re.sub(r'\d+', str(count), old_label)
+      buffer_contents = re.sub(re.escape(old_label), new_label, buffer_contents, 1)
+      updated_slice   = buffer_contents[0:index]
+      buffer_contents = buffer_contents[index:] #chop off searched buffer
+      new_buff = new_buff + updated_slice
       count = count + 1
 
-    if len(regions) < 10:
-      return
-
-    regions = self.view.find_all(note_pattern)
-    for region in regions[10:100]:
-      note = note_template.replace("NN", str(count))
-      insert_spot = region.a
-
-      if len(note) > region.size():
-        print("deco")
-        difference =  len(note) - region.size()
-        insert_spot = insert_spot + difference
-
-      self.view.erase(edit, region)
-      self.view.insert(edit, insert_spot, note)
-      count = count + 1
-
-    if len(regions) < 100:
-      return
-    regions = self.view.find_all(note_pattern)
-    for region in regions[100:1000]:
-      note = note_template.replace("NN", str(count))
-      insert_spot = region.a
-      if len(note) > region.size():
-        difference =  len(note) - region.size()
-        insert_spot = insert_spot + difference
-        print("hundo:" + str(difference))
-
-      self.view.erase(edit, region)
-      self.view.insert(edit, insert_spot, note)
-      count = count + 1
-
-
-    if len(regions) < 1000:
-      return
-    regions = self.view.find_all(note_pattern)
-    for region in regions[1000:10000]:
-      note = note_template.replace("NN", str(count))
-      insert_spot = region.a
-
-      if len(note) > region.size():
-        difference =  len(note) - region.size()
-        insert_spot = insert_spot + difference
-
-      self.view.erase(edit, region)
-      self.view.insert(edit, insert_spot, note)
-      count = count + 1
-
-# # before: [^9]
-# # BOOM -- plus 0
-# # after : [^10
-# # before: ][^10
-# # after : [^11]
-# # before:  [^11
-# # after : [^12]
-
-# # before: [^9]
-# # BOOM -- plus 1
-# # after : [^10] -- stomp on the next guy on insert?
-# # before: ]^10]
-# # after : [^11]
-
+    new_buff = new_buff + buffer_contents #add back unsearched buffer
+    self.view.erase(edit, sublime.Region(0, self.view.size()))
+    self.view.insert(edit, 0, new_buff)
 
   def move_cursor_to_region(self, region):
     # Clear the cursor's position and move it to `region`.
