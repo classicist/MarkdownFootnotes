@@ -132,8 +132,9 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     self.view.erase(edit, sublime.Region(0, self.view.size()))
     self.view.insert(edit, 0, new_buff)
 
-  def move_cursor_to_region(self, region):
+  def move_cursor_to_region_at_EOL(self, region):
     # Clear the cursor's position and move it to `region`.
+    region = self.view.line(region) # b is now EOL
     region.a = region.b
     cursor = self.view.sel()
     self.original_position = cursor[0]
@@ -180,7 +181,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     entry_cursor_region = self.insert_new_entry(edit, label_cursor_region)
     self.consecutize_numbering(edit, "label")
     self.consecutize_numbering(edit, "entry")
-    self.move_cursor_to_region(entry_cursor_region)
+    self.move_cursor_to_region_at_EOL(entry_cursor_region)
 
 #######################################################################################
 #######################################################################################
