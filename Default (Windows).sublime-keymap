@@ -1,5 +1,5 @@
 [
     {
-        "keys": ["super+shift+f"], "command": "auto_insert_pandoc_footnote""keys": ["super+alt+f"], "command": "auto_insert_pandoc_footnote"
+        "keys": ["super+shift+f"], "command": "auto_insert_pandoc_footnote_with_position"
     }
 ]

@@ -21,7 +21,7 @@ m veniam, quis nostrud[^6] foo exercitation ullamco laboris nisi ut aliquip ex
 ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
 velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
-est laborum.[^7][^8]
+est laborum.[^7] aasdf
 
 [^1]: ffo
 
@@ -36,6 +36,3 @@ est laborum.[^7][^8]
 [^6]:(pos: 13–26)
 
 [^7]:(pos: 69–70)
-
-[^8]:(pos: -140–70)
-

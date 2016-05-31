@@ -227,6 +227,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
   def get_entry_text(self, type, text, label_cursor_region):
     text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
     if label_cursor_region.begin() == label_cursor_region.end():
+      print("NOPE")
       return(text) #if there is no highlighted region, it just returns the text of the note
 
     #get paragraph containing cursor
@@ -262,7 +263,8 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     else:
       pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n\n"
 
-    text = re.sub("\s+\Z", pos, text)
+    text = text.rstrip() + pos
+    print("BROKEN WHEN INSERT IS NOT TYPE 'LAST': " + text + "--")
     return(text)
 
   def run(self, edit):
@@ -272,6 +274,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
 ######################################################################################
 ######################################################################################
 
+#TODO -- use scopes for:
 class AutoDeletePandocFootnoteCommand(AutoInsertPandocFootnoteCommand):
   def run(self, edit):
     cursor = self.view.sel()
