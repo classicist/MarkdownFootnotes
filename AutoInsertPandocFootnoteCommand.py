@@ -190,6 +190,22 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
 ######################################################################################
 
 class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteCommand):
+  def run(self, edit):
+    AutoInsertPandocFootnoteCommand.run(self, edit)
+
+  def get_entry_text(self, type, text, label_cursor_region):
+    text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
+    if label_cursor_region.begin() == label_cursor_region.end():
+      return(text) #if there is no highlighted region, do nothing
+
+    paragraph_text   = self.get_paragraph_containing_cursor(label_cursor_region)
+    highlighted_text = self.get_text_in_highlighted_region(label_cursor_region)
+    pos              = self.get_start_and_end_position(paragraph_text, highlighted_text)
+
+    text = text.rstrip() + pos
+    print("BROKEN WHEN INSERT IS NOT TYPE 'LAST': " + text + "--")
+    return(text)
+
   def find_beginning_of_paragraph(self, start):
     r = sublime.Region(0, start)
     lines = self.view.split_by_newlines(r)
@@ -224,37 +240,36 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
 
     return stop_line
 
-  def get_entry_text(self, type, text, label_cursor_region):
-    text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
-    if label_cursor_region.begin() == label_cursor_region.end():
-      print("NOPE")
-      return(text) #if there is no highlighted region, it just returns the text of the note
-
-    #get paragraph containing cursor
+  def get_paragraph_containing_cursor(self, label_cursor_region):
     first_line_region = self.find_beginning_of_paragraph( label_cursor_region.end() )
     paragraph_region = sublime.Region(first_line_region.begin(), label_cursor_region.end())
     paragraph_text = self.view.substr(paragraph_region)
+    paragraph_text = self.cleanup_paragraph_text(paragraph_text)
+    return(paragraph_text)
 
-    #cleanup paragraph_text
+  def cleanup_paragraph_text(self, paragraph_text):
     paragraph_start_pattern  = "(\n\n|\A)__(\d+|\.|praef|pref)+__\s*"
     paragraph_text = re.sub(paragraph_start_pattern, "", paragraph_text) #clip off intro matter
     paragraph_text = paragraph_text.strip()
     paragraph_text = re.sub("\n", " ", paragraph_text)
     paragraph_text = re.sub("\s+", " ", paragraph_text)
     paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
+    return(paragraph_text)
 
-    #get text in highlighted region
-    label_cursor_region.a = label_cursor_region.a - 1
-    label_cursor_region.b = label_cursor_region.b - 1
-    highlighted_text = self.view.substr(label_cursor_region)
+  def get_text_in_highlighted_region(self, label_cursor_region):
+    highlighted_region = sublime.Region(label_cursor_region.a - 1, label_cursor_region.b - 1)
+    highlighted_text = self.view.substr(highlighted_region)
+    highlighted_text = self.cleanup_highlighted_text(highlighted_text)
+    return(highlighted_text)
 
-    #cleanup highlighted_text
+  def cleanup_highlighted_text(self, highlighted_text):
     highlighted_text = highlighted_text.strip()
     highlighted_text = re.sub("\n", " ", highlighted_text)
     highlighted_text = re.sub("\s+", " ", highlighted_text)
     highlighted_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", highlighted_text)
+    return(highlighted_text)
 
-    #calculate star and end pos of highlighted_text
+  def get_start_and_end_position(self, paragraph_text, highlighted_text):
     end_pos   =  len(re.split("\s+", paragraph_text))
     start_pos =  end_pos - len(re.split("\s+", highlighted_text)) + 1 # bc start is loc of 1st word
 
@@ -263,12 +278,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     else:
       pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n\n"
 
-    text = text.rstrip() + pos
-    print("BROKEN WHEN INSERT IS NOT TYPE 'LAST': " + text + "--")
-    return(text)
-
-  def run(self, edit):
-    AutoInsertPandocFootnoteCommand.run(self, edit)
+    return(pos)
 
 ######################################################################################
 ######################################################################################
