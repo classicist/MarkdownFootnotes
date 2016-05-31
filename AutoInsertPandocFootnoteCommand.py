@@ -19,6 +19,8 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
           note_label_region = region
           break
       last_note_label = self.view.substr(note_label_region)
+    else:
+      last_note_label = "[^0]"
     return(last_note_label)
 
   def note_label(self, cursor_region):
@@ -26,7 +28,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     return(self.view.substr(note_label_region))
 
   def increment_fn(self, note_label):
-    if note_label == "":
+    if not re.match(self.LABEL_PATTERN, note_label):
       note_label = "[^0]"
     note_number = re.findall(r'\d+', note_label)[0]
     note_number =  int(note_number) + 1
@@ -199,7 +201,6 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     last_str = u''
     stop_line = sublime.Region(0,0)
 
-    # print("---")
     index = 0
     for line in lines:
       on_last_line = (len(lines) - 1) == index
@@ -232,14 +233,10 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     if label_cursor_region.begin() == label_cursor_region.end():
       return(text) #if there is no highlighted region, it just returns the text of the note
 
-    fn_number = re.findall(r'\d+', text)[0]
-    print("fn_number: " + str(fn_number))
-
     #get paragraph containing cursor
     first_line_region = self.find_paragraph_position_backward( label_cursor_region.end() )
     paragraph_region = sublime.Region(first_line_region.begin(), label_cursor_region.end())
     paragraph_text = self.view.substr(paragraph_region)
-    print("P0: " + str(paragraph_text))
 
     #cleanup paragraph_text
     paragraph_start_pattern  = "(\n\n|\A)__(\d+|\.|praef|pref)+__\s*"
@@ -259,7 +256,6 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     highlighted_text = re.sub("\n", " ", highlighted_text)
     highlighted_text = re.sub("\s+", " ", highlighted_text)
     highlighted_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", highlighted_text)
-    print("H1: " + re.escape(highlighted_text))
 
     #calculate star and end pos of highlighted_text
     end_pos   =  len(re.split("\s+", paragraph_text))
@@ -271,10 +267,16 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
       pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n"
 
     text = re.sub("\n$", pos, text)
-
-    print("text: " + text)
     return(text)
 
   def run(self, edit):
     AutoInsertPandocFootnoteCommand.run(self, edit)
+
+######################################################################################
+######################################################################################
+######################################################################################
+
+class AutoDeletePandocFootnoteCommand(AutoInsertPandocFootnoteCommand):
+  def run(self, edit):
+    cursor = self.view.sel()
 

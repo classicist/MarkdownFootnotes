@@ -1,4 +1,4 @@
-__1.6__ [^1]Forem ipsum dolor[^2] sit amet,[^3] consectetur adipiscing elit, sed do
+__1.6__ Forem ipsum dolor[^2] sit amet,[^3] consectetur adipiscing elit, sed do
 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
 minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
 ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
@@ -17,13 +17,11 @@ est laborum.
 
 __1.8__ Lorem ipsum dolor [^5]sit amet, ectetur adipiscing elit, sed do
 od tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-m veniam, quis nostrud foo exercitation ullamco laboris nisi ut aliquip ex
+m veniam, quis nostrud[^6] foo exercitation ullamco laboris nisi ut aliquip ex
 ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
 velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
 cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id
 est laborum.
-
-[^1]:
 
 [^2]:
 
@@ -32,3 +30,5 @@ est laborum.
 [^4]:
 
 [^5]:
+
+[^6]:(pos: 13–26)
