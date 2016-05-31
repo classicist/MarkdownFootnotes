@@ -10,21 +10,17 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
   ENTRY_PATTERN = "^\[\^\d+\]\:"
 
   def previous_note_label(self, cursor_region):
-    last_note_label = ""
-    note_label_region = cursor_region
-    note_label_regions = self.view.find_all(self.LABEL_PATTERN)
-    if len(note_label_regions) > 0:
-      for region in reversed(note_label_regions):
-        if region.end() <= cursor_region.begin():
-          note_label_region = region
-          break
-      last_note_label = self.view.substr(note_label_region)
-    else:
-      last_note_label = "[^0]"
+    last_note_label = "[^0]"
+    note_label_region = sublime.Region(0, cursor_region.end())
+    text = self.view.substr(note_label_region)
+    matchs = re.findall("(\[\^\d+\])(?!\:)", text)
+    if matchs:
+      last_note_label = matchs[-1]
+
     return(last_note_label)
 
   def note_label(self, cursor_region):
-    note_label_region = self.view.find(self.LABEL_PATTERN, cursor_region.a)
+    note_label_region = self.view.find(self.LABEL_PATTERN, cursor_region.begin())
     return(self.view.substr(note_label_region))
 
   def increment_fn(self, note_label):
@@ -70,7 +66,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     if type == "new":
         entry_text = "\n\n%(text)s" % locals()
     if type == "first_or_middle":
-        entry_text = "%(text)s\n\n" % locals()
+        entry_text = "\n\n%(text)s" % locals()
     if type == "last":
         entry_text = "\n%(text)s" % locals()
     return(entry_text)
@@ -86,7 +82,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     if entries_exist:
       if is_first_or_middle_position_entry:
         entry_text = self.get_entry_text("first_or_middle", raw_entry, label_cursor_region)
-        entry_spot = entry['region'].a
+        entry_spot = entry['region'].end()
         entry_cursor_region = entry['region']
         self.view.insert(edit, entry_spot, entry_text)
       else: #is last entry in the file
