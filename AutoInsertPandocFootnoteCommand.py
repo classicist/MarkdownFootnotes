@@ -202,8 +202,10 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     highlighted_text = self.get_text_in_highlighted_region(label_cursor_region)
     pos              = self.get_start_and_end_position(paragraph_text, highlighted_text)
 
-    text = text.rstrip() + pos
-    print("BROKEN WHEN INSERT IS NOT TYPE 'LAST': " + text + "--")
+    text = text + "pos.strip()"
+    #I think the problem is that find_prev_note is off by 1
+    #If I am inserting a new FN1, the 'text' here becomes FN2, when it should be FN1
+    print("BROKEN WHEN INSERT IS NOT TYPE 'LAST': " + text + "--" + pos + "<<<")
     return(text)
 
   def find_beginning_of_paragraph(self, start):
