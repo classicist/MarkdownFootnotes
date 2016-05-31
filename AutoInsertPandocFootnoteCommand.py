@@ -112,6 +112,8 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     else:
       note_pattern  = "(\[\^\d+\]\:)"
 
+    #lesson learned: do not iterative string modifications in the buffer. Just grab
+    #the whole buffer, do your mods in python, then replace the whole buffer.
     buffer_contents =  self.view.substr(sublime.Region(0, self.view.size()))
     labels = re.findall(note_pattern, buffer_contents)
 
@@ -190,50 +192,89 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
 ######################################################################################
 
 class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteCommand):
+  def find_paragraph_position_backward(self, start):
+    r = sublime.Region(0, start)
+    lines = self.view.split_by_newlines(r)
+    lines.reverse()
+    last_str = u''
+    stop_line = sublime.Region(0,0)
+
+    # print("---")
+    index = 0
+    for line in lines:
+      on_last_line = (len(lines) - 1) == index
+      if on_last_line: #if we are on the last line, there were no matches
+        return(stop_line)
+      else:
+        next_line = lines[index + 1]
+        index     = index + 1
+
+      current_str = self.view.substr(line)
+      next_str = self.view.substr(next_line)
+
+      current_line_has_text = not re.match("\A\s*\Z", current_str)
+      next_line_is_empty    = not not re.match("\A\s*\Z", next_str)
+
+      # print("+++")
+      # print("current_str: " + str(current_str))
+      # print("current_line_has_text: " + str(current_line_has_text))
+      # print("next_str: " + str(next_str))
+      # print("next_line_is_empty: " + str(next_line_is_empty))
+
+      if (current_line_has_text and next_line_is_empty):
+        stop_line = line
+        break
+
+    return stop_line
+
   def get_entry_text(self, type, text, label_cursor_region):
     text = AutoInsertPandocFootnoteCommand.get_entry_text(self,type, text, label_cursor_region)
     if label_cursor_region.begin() == label_cursor_region.end():
-      return(text)
+      return(text) #if there is no highlighted region, it just returns the text of the note
 
     fn_number = re.findall(r'\d+', text)[0]
-    md_paragraph_pattern = "\n\n(.+?\n)+(.*?\[\^NN\](?!(\:)).*?\n)(.+?\n)+\n"
-    md_paragraph_pattern = re.sub("NN", fn_number, md_paragraph_pattern)
+    print("fn_number: " + str(fn_number))
 
-    #get paragraph containing note
-    paragraph_region = self.view.find(md_paragraph_pattern, 0)
+    #get paragraph containing cursor
+    first_line_region = self.find_paragraph_position_backward( label_cursor_region.end() )
+    paragraph_region = sublime.Region(first_line_region.begin(), label_cursor_region.end())
     paragraph_text = self.view.substr(paragraph_region)
+    print("P0: " + str(paragraph_text))
 
-    #clip off intro matter
-    paragraph_start_pattern  = "(\n\n)?__(\d+|\.|praef|pref)+__\s*"
-    paragraph_text = re.sub(paragraph_start_pattern, "", paragraph_text)
+    #cleanup paragraph_text
+    paragraph_start_pattern  = "(\n\n|\A)__(\d+|\.|praef|pref)+__\s*"
+    paragraph_text = re.sub(paragraph_start_pattern, "", paragraph_text) #clip off intro matter
+    paragraph_text = paragraph_text.strip()
+    paragraph_text = re.sub("\n", " ", paragraph_text)
+    paragraph_text = re.sub("\s+", " ", paragraph_text)
+    paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
 
     #get text in highlighted region
     label_cursor_region.a = label_cursor_region.a - 1
     label_cursor_region.b = label_cursor_region.b - 1
     highlighted_text = self.view.substr(label_cursor_region)
 
-    #get star and end pos of highlighted text in paragraph
-    #count the \S\s\S groups before the find pos
-    #clip off later text
-
-    paragraph_text = paragraph_text.replace("\n", " ")
+    #cleanup highlighted_text
+    highlighted_text = highlighted_text.strip()
+    highlighted_text = re.sub("\n", " ", highlighted_text)
+    highlighted_text = re.sub("\s+", " ", highlighted_text)
+    highlighted_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", highlighted_text)
     print("H1: " + re.escape(highlighted_text))
-    print("P1: " + str(paragraph_text))
 
-    paragraph_text = re.match(".*?" + re.escape(highlighted_text), paragraph_text).group(0)
-    paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
-    #words in p minus words in highlight = start, total in p = end
-    end_pos   =  len(re.split("\w\W", paragraph_text))
-    start_pos =  end_pos - len(re.split("\w\W", highlighted_text))
-    pos  = "(verba: " + str(start_pos) + "–" + str(end_pos) + ")\n\n"
+    #calculate star and end pos of highlighted_text
+    end_pos   =  len(re.split("\s+", paragraph_text))
+    start_pos =  end_pos - len(re.split("\s+", highlighted_text)) + 1 # bc start is loc of 1st word
 
-    text = re.sub("\n\n", pos, text)
+    if start_pos == end_pos:
+      pos = "(pos: " + str(start_pos) + ")\n"
+    else:
+      pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n"
+
+    text = re.sub("\n$", pos, text)
+
+    print("text: " + text)
     return(text)
 
   def run(self, edit):
     AutoInsertPandocFootnoteCommand.run(self, edit)
-
-#Features:
-#add (pos:1-11) to fn
-
 
