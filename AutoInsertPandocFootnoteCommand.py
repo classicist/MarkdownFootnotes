@@ -194,10 +194,10 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
 ######################################################################################
 
 class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteCommand):
-  def find_paragraph_position_backward(self, start):
+  def find_beginning_of_paragraph(self, start):
     r = sublime.Region(0, start)
     lines = self.view.split_by_newlines(r)
-    lines.reverse()
+    lines.reverse() #search backward from start
     last_str = u''
     stop_line = sublime.Region(0,0)
 
@@ -234,7 +234,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
       return(text) #if there is no highlighted region, it just returns the text of the note
 
     #get paragraph containing cursor
-    first_line_region = self.find_paragraph_position_backward( label_cursor_region.end() )
+    first_line_region = self.find_beginning_of_paragraph( label_cursor_region.end() )
     paragraph_region = sublime.Region(first_line_region.begin(), label_cursor_region.end())
     paragraph_text = self.view.substr(paragraph_region)
 
@@ -262,11 +262,11 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     start_pos =  end_pos - len(re.split("\s+", highlighted_text)) + 1 # bc start is loc of 1st word
 
     if start_pos == end_pos:
-      pos = "(pos: " + str(start_pos) + ")\n"
+      pos = "(pos: " + str(start_pos) + ")\n\n"
     else:
-      pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n"
+      pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n\n"
 
-    text = re.sub("\n$", pos, text)
+    text = re.sub("\s+\Z", pos, text)
     return(text)
 
   def run(self, edit):
