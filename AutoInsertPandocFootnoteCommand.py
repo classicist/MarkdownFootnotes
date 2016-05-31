@@ -228,12 +228,6 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
       current_line_has_text = not re.match("\A\s*\Z", current_str)
       next_line_is_empty    = not not re.match("\A\s*\Z", next_str)
 
-      # print("+++")
-      # print("current_str: " + str(current_str))
-      # print("current_line_has_text: " + str(current_line_has_text))
-      # print("next_str: " + str(next_str))
-      # print("next_line_is_empty: " + str(next_line_is_empty))
-
       if (current_line_has_text and next_line_is_empty):
         stop_line = line
         break
@@ -257,7 +251,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     return(paragraph_text)
 
   def get_text_in_highlighted_region(self, label_cursor_region):
-    highlighted_region = sublime.Region(label_cursor_region.a - 1, label_cursor_region.b - 1)
+    highlighted_region = sublime.Region(label_cursor_region.begin() - 1, label_cursor_region.end() - 1)
     highlighted_text = self.view.substr(highlighted_region)
     highlighted_text = self.cleanup_highlighted_text(highlighted_text)
     return(highlighted_text)
