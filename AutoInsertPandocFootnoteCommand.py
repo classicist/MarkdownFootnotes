@@ -49,6 +49,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     label_number = re.findall(r'\d+', note_label)[0]
     entry_pattern = "^\[\^%(label_number)s\]:" % locals()
     entry_region = self.view.find(entry_pattern, 0) #assuming there is only one entry bc this will always find the first
+    # entry_region = self.view.line(entry_region)
     entry = self.view.substr(entry_region)
     return({'entry': entry, 'region': entry_region})
 
@@ -66,7 +67,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     if type == "new":
         entry_text = "\n\n%(text)s" % locals()
     if type == "first_or_middle":
-        entry_text = "\n\n%(text)s" % locals()
+        entry_text = "%(text)s\n\n" % locals()
     if type == "last":
         entry_text = "\n%(text)s" % locals()
     return(entry_text)
@@ -82,7 +83,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     if entries_exist:
       if is_first_or_middle_position_entry:
         entry_text = self.get_entry_text("first_or_middle", raw_entry, label_cursor_region)
-        entry_spot = entry['region'].end()
+        entry_spot = entry['region'].begin()
         entry_cursor_region = entry['region']
         self.view.insert(edit, entry_spot, entry_text)
       else: #is last entry in the file
@@ -202,10 +203,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     highlighted_text = self.get_text_in_highlighted_region(label_cursor_region)
     pos              = self.get_start_and_end_position(paragraph_text, highlighted_text)
 
-    text = text + "pos.strip()"
-    #I think the problem is that find_prev_note is off by 1
-    #If I am inserting a new FN1, the 'text' here becomes FN2, when it should be FN1
-    print("BROKEN WHEN INSERT IS NOT TYPE 'LAST': " + text + "--" + pos + "<<<")
+    text = text.rstrip() + pos
     return(text)
 
   def find_beginning_of_paragraph(self, start):
