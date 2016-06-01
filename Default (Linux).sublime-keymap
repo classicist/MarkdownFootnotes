@@ -1,5 +1,5 @@
 [
     {
-        "keys": ["alt+f"], "command": "insert_pandoc_footnote"
+        "keys": ["alt+f"], "command": "insert_markdown_footnote"
     }
 ]

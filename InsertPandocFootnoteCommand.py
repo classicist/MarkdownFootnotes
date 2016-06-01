@@ -5,7 +5,7 @@ import sublime
 import sublime_plugin
 import re
 
-class InsertPandocFootnoteBase(sublime_plugin.TextCommand):
+class InsertMarkdownFootnoteBase(sublime_plugin.TextCommand):
   LABEL_PATTERN = "\[\^\d+\](?!(\:))"
   ENTRY_PATTERN = "^\[\^\d+\]\:"
 
@@ -189,12 +189,12 @@ class InsertPandocFootnoteBase(sublime_plugin.TextCommand):
 ######################################################################################
 ######################################################################################
 
-class InsertPandocFootnoteCommand(InsertPandocFootnoteBase):
+class InsertMarkdownFootnoteCommand(InsertMarkdownFootnoteBase):
   def run(self, edit):
-    InsertPandocFootnoteBase.run(self, edit)
+    InsertMarkdownFootnoteBase.run(self, edit)
 
   def get_entry_text(self, type, text, label_cursor_region):
-    text = InsertPandocFootnoteBase.get_entry_text(self,type, text, label_cursor_region)
+    text = InsertMarkdownFootnoteBase.get_entry_text(self,type, text, label_cursor_region)
     if label_cursor_region.begin() == label_cursor_region.end():
       return(text) #if there is no highlighted region, do nothing
 
@@ -246,7 +246,7 @@ class InsertPandocFootnoteCommand(InsertPandocFootnoteBase):
     paragraph_text = paragraph_text.strip()
     paragraph_text = re.sub("\n", " ", paragraph_text)
     paragraph_text = re.sub("\s+", " ", paragraph_text)
-    paragraph_text = re.sub(InsertPandocFootnoteBase.LABEL_PATTERN, "", paragraph_text)
+    paragraph_text = re.sub(InsertMarkdownFootnoteBase.LABEL_PATTERN, "", paragraph_text)
     paragraph_text = re.sub("\s?\[\Z", "", paragraph_text)
     return(paragraph_text)
 
@@ -260,7 +260,7 @@ class InsertPandocFootnoteCommand(InsertPandocFootnoteBase):
     highlighted_text = highlighted_text.strip()
     highlighted_text = re.sub("\n", " ", highlighted_text)
     highlighted_text = re.sub("\s+", " ", highlighted_text)
-    highlighted_text = re.sub(InsertPandocFootnoteBase.LABEL_PATTERN, "", highlighted_text)
+    highlighted_text = re.sub(InsertMarkdownFootnoteBase.LABEL_PATTERN, "", highlighted_text)
     return(highlighted_text)
 
   def get_start_and_end_position(self, paragraph_text, highlighted_text):
@@ -282,6 +282,6 @@ class InsertPandocFootnoteCommand(InsertPandocFootnoteBase):
 ######################################################################################
 
 #TODO -- use scopes for:
-class DeletePandocFootnoteCommand(InsertPandocFootnoteCommand):
+class DeleteMarkdownFootnoteCommand(InsertMarkdownFootnoteCommand):
   def run(self, edit):
     cursor = self.view.sel()

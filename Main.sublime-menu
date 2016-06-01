@@ -3,8 +3,8 @@
     "id": "tools",
     "children":
     [
-        {"id": "Insert Pandoc Footnote"},
-        { "command": "insert_pandoc_footnote" }
+        {"id": "Insert Markdown Footnote"},
+        { "command": "insert_markdown_footnote" }
     ]
 }
 ]
