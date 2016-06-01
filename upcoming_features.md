@@ -7,3 +7,7 @@
 - Delete footnote label that corresponds to deleted entry
 
 ## 1.2.0 Prevent manual footnote editing
+
+## 1.3.0 Double-Click Navigation
+- Double-click label moves cursor to begining of entry text
+- Double-click entry number to move to end of label
