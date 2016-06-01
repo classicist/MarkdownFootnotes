@@ -3,10 +3,8 @@
     "id": "tools",
     "children":
     [
-        {"id": "Insert Footnote"},
-        { "command": "auto_insert_pandoc_footnote" },
-        {"id": "Insert Footnote with Position"},
-        { "command": "auto_insert_pandoc_footnote_with_position" }
+        {"id": "Insert Pandoc Footnote"},
+        { "command": "insert_pandoc_footnote" }
     ]
 }
 ]
