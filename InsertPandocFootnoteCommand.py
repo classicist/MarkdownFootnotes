@@ -280,8 +280,8 @@ class InsertMarkdownFootnoteCommand(InsertMarkdownFootnoteBase):
 ######################################################################################
 ######################################################################################
 ######################################################################################
-
-#TODO -- use scopes for:
-class DeleteMarkdownFootnoteCommand(InsertMarkdownFootnoteCommand):
-  def run(self, edit):
-    cursor = self.view.sel()
+#
+# #TODO -- use scopes for:
+# class DeleteMarkdownFootnoteCommand(InsertMarkdownFootnoteCommand):
+#   def run(self, edit):
+#     cursor = self.view.sel()
