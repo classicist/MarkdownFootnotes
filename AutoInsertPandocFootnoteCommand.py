@@ -285,4 +285,3 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
 class AutoDeletePandocFootnoteCommand(AutoInsertPandocFootnoteCommand):
   def run(self, edit):
     cursor = self.view.sel()
-
