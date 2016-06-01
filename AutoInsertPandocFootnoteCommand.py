@@ -49,7 +49,6 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     label_number = re.findall(r'\d+', note_label)[0]
     entry_pattern = "^\[\^%(label_number)s\]:" % locals()
     entry_region = self.view.find(entry_pattern, 0) #assuming there is only one entry bc this will always find the first
-    # entry_region = self.view.line(entry_region)
     entry = self.view.substr(entry_region)
     return({'entry': entry, 'region': entry_region})
 
@@ -69,7 +68,7 @@ class AutoInsertPandocFootnoteCommand(sublime_plugin.TextCommand):
     if type == "first_or_middle":
         entry_text = "%(text)s\n\n" % locals()
     if type == "last":
-        entry_text = "\n%(text)s" % locals()
+        entry_text = "\n\n%(text)s" % locals()
     return(entry_text)
 
   def insert_new_entry(self, edit, label_cursor_region):
@@ -203,7 +202,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     highlighted_text = self.get_text_in_highlighted_region(label_cursor_region)
     pos              = self.get_start_and_end_position(paragraph_text, highlighted_text)
 
-    text = text.rstrip() + pos
+    text = text.rstrip() + pos + "\n\n"
     return(text)
 
   def find_beginning_of_paragraph(self, start):
@@ -248,6 +247,7 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     paragraph_text = re.sub("\n", " ", paragraph_text)
     paragraph_text = re.sub("\s+", " ", paragraph_text)
     paragraph_text = re.sub(AutoInsertPandocFootnoteCommand.LABEL_PATTERN, "", paragraph_text)
+    paragraph_text = re.sub("\s?\[\Z", "", paragraph_text)
     return(paragraph_text)
 
   def get_text_in_highlighted_region(self, label_cursor_region):
@@ -267,10 +267,13 @@ class AutoInsertPandocFootnoteWithPositionCommand(AutoInsertPandocFootnoteComman
     end_pos   =  len(re.split("\s+", paragraph_text))
     start_pos =  end_pos - len(re.split("\s+", highlighted_text)) + 1 # bc start is loc of 1st word
 
+    if start_pos == 0:
+      start_pos = 1
+
     if start_pos == end_pos:
-      pos = "(pos: " + str(start_pos) + ")\n\n"
+      pos = "(pos: " + str(start_pos) + ")"
     else:
-      pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")\n\n"
+      pos  = "(pos: " + str(start_pos) + "–" + str(end_pos) + ")"
 
     return(pos)
 
