@@ -17,3 +17,5 @@
 ## 1.4.0 Double-Click Navigation
 - Double-click label moves cursor to begining of entry text
 - Double-click entry number to move to end of label
+
+## Zotero Integration
