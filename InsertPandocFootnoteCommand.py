@@ -277,6 +277,94 @@ class InsertMarkdownFootnoteCommand(InsertMarkdownFootnoteBase):
 
     return(pos)
 
+class TestListener(sublime_plugin.EventListener):
+  def on_selection_modified(self, view):
+    # return
+    cursor = view.sel()[0] #dont forget mulit select!
+    search_region = sublime.Region(cursor.begin() - 9, cursor.end() + 9)
+    possible_fn = view.substr(search_region)
+    in_a_note = re.findall("(\[\^\d+\]\:?)", possible_fn)
+    if in_a_note:
+      possible_notes = in_a_note
+      #beg: grab everything after last [^
+      #end: grab everything to last ]:?
+      left_of_cursor = 8
+      begining = possible_fn[0:left_of_cursor]
+      begining = re.findall("(?<!\[).*(\[.*)", begining)
+      left_of_cursor_part_of_fn = re.match("\]|\:|\^", possible_fn[left_of_cursor])
+      print("possible_fn[left_of_cursor]: " + possible_fn[left_of_cursor])
+      end = possible_fn[left_of_cursor:]
+
+      if begining and left_of_cursor_part_of_fn:
+        note = begining[0]
+        begining_has_whole_note = re.match("(\[\^\d+\]\:?)", note)
+        if begining_has_whole_note:
+          end_has_colon_from_note = re.match("^\:", end)
+          note = note + ":" if end_has_colon_from_note else note
+          print("whole note in beg: " + note)
+        else:
+          # # [^0][^1]  8[^23456]: 000
+
+          if end:
+            note = note + end[0]
+          print("beg: " + begining[0])
+          print("end: " + end)
+      # print("---")
+      # begining = re.findall("\[\^\d+", begining)[-1] #grab begining of fn
+      # end = possible_fn[right_of_cursor:-1]
+      # end = re.findall(".*?[:[]", end)[0] #grab begining of fn
+      # possible_fn =  end
+      # print("possible_notes: " + str(possible_fn))
+      # begining = possible_fn[0:-11] #start to cursor location
+      # begining = re.findall("\[\^\d+", begining)[-1] #grab begining of fn
+      # print("begining: " + begining)
+      # end = possible_fn[9:-1] #start to cursor location
+      # end = re.findall("(\d+)?\]\:?", end)[0] #grab begining of fn
+      # print("end: " + end)
+      # fn = begining + end
+      # print(fn)
+
+      # if on_right_edge:
+      #   search_region = sublime.Region(tmp.a - 10, tmp.b)
+      #   possible_fn = view.substr(search_region)
+      #   print(possible_fn)
+      #   match = re.findall("(\[\^\d+\]\:?)", possible_fn)
+      #   if match:
+      #     print(match[-1]) #get last note
+      # elif on_left_edge:
+      #   search_region = sublime.Region(tmp, tmp.b + 10)
+      #   possible_fn = view.substr(search_region)
+      #   print(possible_fn)
+      #   match = re.findall("(\[\^\d+\]\:?)", possible_fn)
+      #   if match:
+      #     print(match[0]) #get first note
+      # elif in_the_middle:
+      #   search_region = sublime.Region(tmp.a - 10, tmp.b + 10)
+      #   possible_fn = view.substr(search_region)
+      #   print(possible_fn)
+      #   match = re.findall("(\[\^\d+\]\:?)", possible_fn)
+      #   if match:
+      #     print(match[0]) #get first note
+
+
+
+      # if re.match("\d\d", orig) or re.match(".\[", orig):
+      #   print(orig) #find more text and check
+      # else:
+      #   print(orig)
+
+    # possible_range.a  = cursor.begin() - 8
+    # possible_range.b  = cursor.end() + 8
+    # position_in_range = possible_range.size() / 2
+    # text = view.substr(possible_range)
+    # word = re.sub("\n", "", text)
+
+    # print("--" + word + "++")
+
+  def on_modified(self, view):
+    return
+    print("somethings open!")
+
 ######################################################################################
 ######################################################################################
 ######################################################################################

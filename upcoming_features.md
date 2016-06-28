@@ -8,6 +8,7 @@
 - Delete footnote entry if label is deleted in a range
 - Delete multiple footnote entries if multiple lables are deleted
 - May have to work by selection? Cant just listen for delete keypress (highlight, then press a letter to overwrite), also dont get triggered on insert/consecutize
+- Maybe just check that all fns match on_modified_async, and delete any entries/labels without a match. Also select an entire entry/label if the cursor is next to or in one? The idea is never let the [^]: thingy be modified.
 
 ## 1.2.0 Prevent manual footnote editing
 
