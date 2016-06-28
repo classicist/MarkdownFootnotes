@@ -7,7 +7,8 @@ Sublime Text 3 Plugin to Automatically Handle Footnotes in Markdown
 - Automatically places cursor in the footnote entry so you can just start typing away at your note.
 
 ## Keybinding
-- ctrl+f: Insert Footnote
+- ctrl+f: Insert Footnote (OS X)
+- ctrl+alt+super+f: Insert Footnote (Linux, Windows)
 
 ## Example Output
 Lorum ipsum dolor amet sit.[^1]

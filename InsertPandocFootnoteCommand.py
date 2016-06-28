@@ -277,39 +277,39 @@ class InsertMarkdownFootnoteCommand(InsertMarkdownFootnoteBase):
 
     return(pos)
 
-class TestListener(sublime_plugin.EventListener):
-  def on_selection_modified(self, view):
-    # return
-    cursor = view.sel()[0] #dont forget mulit select!
-    search_region = sublime.Region(cursor.begin() - 9, cursor.end() + 9)
-    possible_fn = view.substr(search_region)
-    in_a_note = re.findall("(\[\^\d+\]\:?)", possible_fn)
-    if in_a_note:
-      possible_notes = in_a_note
-      #beg: grab everything after last [^
-      #end: grab everything to last ]:?
-      left_of_cursor = 8
-      begining = possible_fn[0:left_of_cursor]
-      begining = re.findall("(?<!\[).*(\[.*)", begining)
-      left_of_cursor_part_of_fn = re.match("\]|\:|\^", possible_fn[left_of_cursor])
-      print("possible_fn[left_of_cursor]: " + possible_fn[left_of_cursor])
-      end = possible_fn[left_of_cursor:]
+# class TestListener(sublime_plugin.EventListener):
+#   def on_selection_modified(self, view):
+#     # return
+#     cursor = view.sel()[0] #dont forget mulit select!
+#     search_region = sublime.Region(cursor.begin() - 9, cursor.end() + 9)
+#     possible_fn = view.substr(search_region)
+#     in_a_note = re.findall("(\[\^\d+\]\:?)", possible_fn)
+#     if in_a_note:
+#       possible_notes = in_a_note
+#       #beg: grab everything after last [^
+#       #end: grab everything to last ]:?
+#       left_of_cursor = 8
+#       begining = possible_fn[0:left_of_cursor]
+#       begining = re.findall("(?<!\[).*(\[.*)", begining)
+#       left_of_cursor_part_of_fn = re.match("\]|\:|\^", possible_fn[left_of_cursor])
+#       print("possible_fn[left_of_cursor]: " + possible_fn[left_of_cursor])
+#       end = possible_fn[left_of_cursor:]
 
-      if begining and left_of_cursor_part_of_fn:
-        note = begining[0]
-        begining_has_whole_note = re.match("(\[\^\d+\]\:?)", note)
-        if begining_has_whole_note:
-          end_has_colon_from_note = re.match("^\:", end)
-          note = note + ":" if end_has_colon_from_note else note
-          print("whole note in beg: " + note)
-        else:
-          # # [^0][^1]  8[^23456]: 000
+#       if begining and left_of_cursor_part_of_fn:
+#         note = begining[0]
+#         begining_has_whole_note = re.match("(\[\^\d+\]\:?)", note)
+#         if begining_has_whole_note:
+#           end_has_colon_from_note = re.match("^\:", end)
+#           note = note + ":" if end_has_colon_from_note else note
+#           print("whole note in beg: " + note)
+#         else:
+#           # # [^0][^1]  8[^23456]: 000
 
-          if end:
-            note = note + end[0]
-          print("beg: " + begining[0])
-          print("end: " + end)
-      # print("---")
+#           if end:
+#             note = note + end[0]
+#           print("beg: " + begining[0])
+#           print("end: " + end)
+#       # print("---")
       # begining = re.findall("\[\^\d+", begining)[-1] #grab begining of fn
       # end = possible_fn[right_of_cursor:-1]
       # end = re.findall(".*?[:[]", end)[0] #grab begining of fn
@@ -361,9 +361,9 @@ class TestListener(sublime_plugin.EventListener):
 
     # print("--" + word + "++")
 
-  def on_modified(self, view):
-    return
-    print("somethings open!")
+  # def on_modified(self, view):
+  #   return
+  #   print("somethings open!")
 
 ######################################################################################
 ######################################################################################
