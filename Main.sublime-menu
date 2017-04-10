@@ -1,10 +1,12 @@
 [
-{
-    "id": "tools",
-    "children":
-    [
-        {"id": "Insert Markdown Footnote"},
-        { "command": "insert_markdown_footnote" }
-    ]
-}
+	{
+	 "caption": "Tools",
+	 "mnemonic": "T",
+	 "id": "tools",
+	 "children":
+		[
+			{ "caption": "-", "id": "packagecommands" },
+			{ "command": "insert_markdown_footnote", "caption": "Markdown Footnote: Insert Footnote"}
+		]
+	}
 ]
